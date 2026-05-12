@@ -93,7 +93,7 @@ const DiscoverSection = () => {
             asChild
             className="bg-[#392720] px-12 py-6 rounded-none"
           >
-            <Link to="/shop">Discover the edit</Link>
+            <Link to="/shop">Discover</Link>
           </Button>
         </div>
       </div>

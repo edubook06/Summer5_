@@ -7,9 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Minus, Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
+
 const ProductDetail = () => {
   const { slug } = useParams();
-  const { apiUrl } = useAuth();
+  const { apiUrl, token } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +54,72 @@ const ProductDetail = () => {
 
     addToCart(product, 1);
     toast({ title: `${product.name} added to cart` });
+  };
+
+  const handlePayWithPaypal = async () => {
+    // This button does NOT implement PayPal.
+    // It uses the existing checkout/session flow (Stripe under the hood),
+    // mirroring the /cart "Check out" behavior.
+    if (!product || product.status === "soldout") return;
+
+    if (!token) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to complete checkout.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentCartItems = items?.length
+      ? items
+      : inCartQuantity > 0
+        ? [{ product, quantity: inCartQuantity }]
+        : [{ product, quantity: 1 }];
+
+    const response = await fetch(`${apiUrl}/api/checkout/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        items: (currentCartItems || []).map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to complete checkout.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Checkout failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    toast({
+      title: "Checkout failed",
+      description: "Missing checkout URL.",
+      variant: "destructive",
+    });
   };
 
   const handleDecrease = () => {
@@ -216,14 +283,12 @@ const ProductDetail = () => {
                   </Button>
                 )}
 
-                <Button className="w-full py-6 text-base bg-[#ffc439] hover:bg-[#f0b72f] text-black">
-                  Pay with
-                  <span className="font-bold text-[#003087] ml-1">PayPal</span>
+                <Button
+                  className="w-full py-6 text-base bg-[#ffc439] hover:bg-[#f0b72f] text-black"
+                  onClick={handlePayWithPaypal}
+                >
+                  Buy Now
                 </Button>
-
-                <button className="w-full text-sm underline text-center block">
-                  More payment options
-                </button>
               </div>
 
               {/* Description */}

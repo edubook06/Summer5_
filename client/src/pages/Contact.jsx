@@ -2,8 +2,24 @@ import Layout from "@/components/layout/Layout";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 const Contact = () => {
+  const [result, setResult] = useState("");
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    formData.append("access_key", "671eaed5-5d68-467c-a128-8b92cd2e0564");
+
+    const response = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+    setResult(data.success ? "Success!" : "Error");
+  };
+
   return (
     <Layout>
       <div className="px-6 lg:px-12 py-12">
@@ -17,7 +33,7 @@ const Contact = () => {
           </p>
 
           {/* Contact Form */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={onSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 type="text"
@@ -50,6 +66,7 @@ const Contact = () => {
             >
               Send
             </Button>
+            <p>{result}</p>
           </form>
         </div>
       </div>

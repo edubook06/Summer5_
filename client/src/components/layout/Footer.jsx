@@ -109,7 +109,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://instagram.com"
+                  href="https://instagram.com/ishika_6062"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:opacity-70 transition-opacity"
